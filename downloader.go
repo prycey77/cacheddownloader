@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -190,7 +191,7 @@ func formatRequest(r *retryablehttp.Request) string {
 		request = append(request, r.Form.Encode())
 	}
 	// Return the request as a string
-	return strings.Join(request, "\n")
+	return strings.Join(request, "\n") + "\n"
 }
 
 func (downloader *Downloader) fetchToFile(
@@ -206,13 +207,21 @@ func (downloader *Downloader) fetchToFile(
 
 	req, err = retryablehttp.NewRequest("GET", url.String(), nil)
 	formattedRequest := formatRequest(req)
-	byteRequest := []byte(formattedRequest)
+
 	fmt.Println(formattedRequest)
-	os.WriteFile("/tmp/azure-dump", byteRequest, 0644)
 
 	if err != nil {
 		return "", CachingInfoType{}, err
 	}
+
+	f, err := os.OpenFile("/tmp/request-dump.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	dumpLogger := log.New(f, "", log.LstdFlags)
+	dumpLogger.Println(formattedRequest)
 
 	ctx, cancel := context.WithCancel(req.Request.Context())
 	defer cancel()
