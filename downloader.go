@@ -108,7 +108,6 @@ func NewHTTPClient(maxDownloadAttempts int, requestTimeout, idleTimeout, retryWa
 		TLSClientConfig:     tlsConfig,
 		DisableKeepAlives:   true,
 	}
-
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient.Transport = transport
 	retryClient.HTTPClient.Timeout = requestTimeout
@@ -206,8 +205,11 @@ func (downloader *Downloader) fetchToFile(
 	var err error
 
 	req, err = retryablehttp.NewRequest("GET", url.String(), nil)
+	formattedRequest := formatRequest(req)
+	byteRequest := []byte(formattedRequest)
+	fmt.Println(formattedRequest)
+	os.WriteFile("/tmp/azure-dump", byteRequest, 0644)
 
-	fmt.Println(formatRequest(req))
 	if err != nil {
 		return "", CachingInfoType{}, err
 	}
