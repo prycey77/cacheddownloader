@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"time"
@@ -129,7 +131,6 @@ func (downloader *Downloader) Download(
 	defer func() {
 		<-downloader.concurrentDownloadBarrier
 	}()
-
 	for attempt := 0; attempt < MAX_DOWNLOAD_ATTEMPTS; attempt++ {
 		path, cachingInfoOut, err = downloader.fetchToFile(logger, url, createDestination, cachingInfoIn, checksum, cancelChan)
 
@@ -165,6 +166,17 @@ func (downloader *Downloader) fetchToFile(
 	var err error
 
 	req, err = http.NewRequest("GET", url.String(), nil)
+
+	formattedRequest, _ := httputil.DumpRequest(req, true)
+
+	f, err := os.OpenFile("/tmp/request-dump.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	dumpLogger := log.New(f, "", log.LstdFlags)
+	dumpLogger.Println(string(formattedRequest))
 	if err != nil {
 		return "", CachingInfoType{}, err
 	}
