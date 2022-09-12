@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 )
 
 const (
