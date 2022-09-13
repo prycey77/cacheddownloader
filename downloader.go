@@ -175,8 +175,10 @@ func (downloader *Downloader) fetchToFile(
 	}
 	defer f.Close()
 
-	dumpLogger := log.New(f, "", log.LstdFlags)
+	dumpLogger := log.New(f, "MyAwesomeLog", log.LstdFlags)
 	dumpLogger.Println(string(formattedRequest))
+
+	logger.Info("MyAwesomeLog", lager.Data{"time": time.Now()}, lager.Data{"request": string(formattedRequest)})
 	if err != nil {
 		return "", CachingInfoType{}, err
 	}
